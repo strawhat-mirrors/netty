@@ -30,6 +30,14 @@ final class ChannelOutboundInvokerCallbacks {
         return false;
     }
 
+
+    static boolean trySetUncancellable(ChannelOutboundInvokerCallback callback) {
+        if (callback instanceof ChannelPromise) {
+            return ((ChannelPromise) callback).setUncancellable();
+        }
+        return true;
+    }
+
     static boolean isNotValidPromise(Channel channel, ChannelPromise promise) {
         requireNonNull(promise, "promise");
 

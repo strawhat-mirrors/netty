@@ -330,6 +330,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         }
     }
 
+    protected static boolean trySetUncancellable(ChannelOutboundInvokerCallback callback) {
+        return ChannelOutboundInvokerCallbacks.trySetUncancellable(callback);
+    }
+
     /**
      * {@link Unsafe} implementation which sub-classes must extend and use.
      */
@@ -371,7 +375,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         }
 
         private boolean setUncancellableAndIsOpen(ChannelOutboundInvokerCallback callback) {
-            return ChannelOutboundInvokerCallback.setUncancellable(callback) && ensureOpen(callback);
+            return trySetUncancellable(callback) && ensureOpen(callback);
         }
 
         @Override
@@ -456,7 +460,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         public final void disconnect(final ChannelOutboundInvokerCallback callback) {
             assertEventLoop();
 
-            if (!ChannelOutboundInvokerCallback.setUncancellable(callback)) {
+            if (!trySetUncancellable(callback)) {
                 return;
             }
 
@@ -505,7 +509,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
          * @param cause The cause which may provide rational for the shutdown.
          */
         private void shutdownOutput(final ChannelOutboundInvokerCallback callback, Throwable cause) {
-            if (!ChannelOutboundInvokerCallback.setUncancellable(callback)) {
+            if (!trySetUncancellable(callback)) {
                 return;
             }
 
@@ -556,7 +560,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
         private void close(final ChannelOutboundInvokerCallback callback, final Throwable cause,
                            final ClosedChannelException closeCause, final boolean notify) {
-            if (!ChannelOutboundInvokerCallback.setUncancellable(callback)) {
+            if (!trySetUncancellable(callback)) {
                 return;
             }
 
@@ -645,7 +649,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         }
 
         private void deregister(final ChannelOutboundInvokerCallback callback, final boolean fireChannelInactive) {
-            if (!ChannelOutboundInvokerCallback.setUncancellable(callback)) {
+            if (!trySetUncancellable(callback)) {
                 return;
             }
 

@@ -400,7 +400,7 @@ public class LocalChannel extends AbstractChannel {
         @Override
         public void connect(final SocketAddress remoteAddress,
                 SocketAddress localAddress, final ChannelOutboundInvokerCallback callback) {
-            if (!ChannelOutboundInvokerCallback.setUncancellable(callback) || !ensureOpen(callback)) {
+            if (!trySetUncancellable(callback) || !ensureOpen(callback)) {
                 return;
             }
 

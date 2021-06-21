@@ -228,7 +228,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         public final void connect(
                 final SocketAddress remoteAddress, final SocketAddress localAddress,
                 final ChannelOutboundInvokerCallback callback) {
-            if (!ChannelOutboundInvokerCallback.setUncancellable(callback) || !ensureOpen(callback)) {
+            if (!trySetUncancellable(callback) || !ensureOpen(callback)) {
                 return;
             }
             if (connectListener != null) {

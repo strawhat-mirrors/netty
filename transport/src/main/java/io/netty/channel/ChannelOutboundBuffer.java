@@ -145,7 +145,7 @@ public final class ChannelOutboundBuffer {
             }
             do {
                 flushed ++;
-                if (!ChannelOutboundInvokerCallback.setUncancellable(entry.callback)) {
+                if (!ChannelOutboundInvokerCallbacks.trySetUncancellable(entry.callback)) {
                     // Was cancelled so make sure we free up memory and notify about the freed bytes
                     int pending = entry.cancel();
                     decrementPendingOutboundBytes(pending, false, true);

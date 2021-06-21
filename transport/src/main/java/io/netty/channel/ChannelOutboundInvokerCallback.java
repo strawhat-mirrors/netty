@@ -18,16 +18,7 @@ package io.netty.channel;
 /**
  * Listener which will be notified when an {@link ChannelOutboundInvoker} methods is completed.
  */
-// TODO: Should ChannelOutboundInvokerCallback be EventExecutor aware and so be able to delegate if needed ?
 public interface ChannelOutboundInvokerCallback {
-
-    // TODO: Should this be here and should we even support cancellation at all ?
-    static boolean setUncancellable(ChannelOutboundInvokerCallback callback) {
-        if (callback instanceof ChannelPromise) {
-            return ((ChannelPromise) callback).setUncancellable();
-        }
-        return true;
-    }
 
     /**
      * Called when an {@link ChannelOutboundInvoker} methods completes successfully.

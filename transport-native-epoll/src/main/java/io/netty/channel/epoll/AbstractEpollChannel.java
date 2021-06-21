@@ -581,8 +581,9 @@ abstract class AbstractEpollChannel extends AbstractChannel implements UnixChann
 
         @Override
         public void connect(
-                final SocketAddress remoteAddress, final SocketAddress localAddress, final ChannelOutboundInvokerCallback callback) {
-            if (!callback.setUncancellable() || !ensureOpen(callback)) {
+                final SocketAddress remoteAddress, final SocketAddress localAddress,
+                final ChannelOutboundInvokerCallback callback) {
+            if (!trySetUncancellable(callback) || !ensureOpen(callback)) {
                 return;
             }
 
