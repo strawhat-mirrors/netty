@@ -212,9 +212,4 @@ public final class DelegatingChannelPromiseNotifier implements ChannelPromise, C
     public void onError(Throwable cause) {
         PromiseNotificationUtil.tryFailure(this, cause, logger);
     }
-
-    @Override
-    public ChannelOutboundInvokerCallback asOutboundInvokerCallback() {
-        return this;
-    }
 }
