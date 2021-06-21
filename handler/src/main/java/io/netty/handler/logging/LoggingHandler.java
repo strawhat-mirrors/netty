@@ -21,7 +21,7 @@ import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundInvokerCallback;
+import io.netty.channel.ChannelPromise;
 import io.netty.util.internal.logging.InternalLogLevel;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
@@ -213,47 +213,45 @@ public class LoggingHandler implements ChannelHandler {
     }
 
     @Override
-    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelOutboundInvokerCallback callback)
-            throws Exception {
+    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "BIND", localAddress));
         }
-        ctx.bind(localAddress, callback);
+        ctx.bind(localAddress, promise);
     }
 
     @Override
     public void connect(
             ChannelHandlerContext ctx,
-            SocketAddress remoteAddress, SocketAddress localAddress, ChannelOutboundInvokerCallback callback)
-            throws Exception {
+            SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "CONNECT", remoteAddress, localAddress));
         }
-        ctx.connect(remoteAddress, localAddress, callback);
+        ctx.connect(remoteAddress, localAddress, promise);
     }
 
     @Override
-    public void disconnect(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "DISCONNECT"));
         }
-        ctx.disconnect(callback);
+        ctx.disconnect(promise);
     }
 
     @Override
-    public void close(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "CLOSE"));
         }
-        ctx.close(callback);
+        ctx.close(promise);
     }
 
     @Override
-    public void deregister(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void deregister(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "DEREGISTER"));
         }
-        ctx.deregister(callback);
+        ctx.deregister(promise);
     }
 
     @Override
@@ -273,12 +271,11 @@ public class LoggingHandler implements ChannelHandler {
     }
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback)
-            throws Exception {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "WRITE", msg));
         }
-        ctx.write(msg, callback);
+        ctx.write(msg, promise);
     }
 
     @Override
@@ -290,11 +287,11 @@ public class LoggingHandler implements ChannelHandler {
     }
 
     @Override
-    public void flush(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void flush(ChannelHandlerContext ctx) throws Exception {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "FLUSH"));
         }
-        ctx.flush(callback);
+        ctx.flush();
     }
 
     /**
@@ -329,8 +326,7 @@ public class LoggingHandler implements ChannelHandler {
 
     /**
      * Formats an event and returns the formatted message.  This method is currently only used for formatting
-     * {@link ChannelHandler#connect(ChannelHandlerContext, SocketAddress, SocketAddress,
-     * ChannelOutboundInvokerCallback)}.
+     * {@link ChannelHandler#connect(ChannelHandlerContext, SocketAddress, SocketAddress, ChannelPromise)}.
      *
      * @param eventName the name of the event
      * @param firstArg  the first argument of the event

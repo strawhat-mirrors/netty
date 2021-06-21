@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.flow.FlowControlHandler;
@@ -159,8 +158,8 @@ public class WebSocketProtocolHandlerTest {
                 false, WebSocketCloseStatus.NORMAL_CLOSURE, 1) { };
         EmbeddedChannel channel = new EmbeddedChannel(new ChannelOutboundHandlerAdapter() {
             @Override
-            public void write(ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback) {
-                ref.set(callback);
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                ref.set(promise);
                 ReferenceCountUtil.release(msg);
             }
         }, handler);

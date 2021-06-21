@@ -19,29 +19,24 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundInvoker;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import io.netty.util.internal.ObjectUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Future;
 
 /**
  * {@link ChannelHandler} which consolidates {@link Channel#flush()} / {@link ChannelHandlerContext#flush()}
  * operations (which also includes
- * {@link Channel#writeAndFlush(Object)} /
- * {@link ChannelOutboundInvoker#writeAndFlush(Object, ChannelOutboundInvokerCallback)} and
+ * {@link Channel#writeAndFlush(Object)} / {@link Channel#writeAndFlush(Object, ChannelPromise)} and
  * {@link ChannelOutboundInvoker#writeAndFlush(Object)} /
- * {@link ChannelOutboundInvoker#writeAndFlush(Object, ChannelOutboundInvokerCallback)}).
+ * {@link ChannelOutboundInvoker#writeAndFlush(Object, ChannelPromise)}).
  * <p>
  * Flush operations are generally speaking expensive as these may trigger a syscall on the transport level. Thus it is
  * in most cases (where write latency can be traded with throughput) a good idea to try to minimize flush operations
  * as much as possible.
  * <p>
- * If a read loop is currently ongoing,
- * {@link ChannelHandler#flush(ChannelHandlerContext, ChannelOutboundInvokerCallback)}
- * will not be passed on to the next
+ * If a read loop is currently ongoing, {@link #flush(ChannelHandlerContext)} will not be passed on to the next
  * {@link ChannelHandler} in the {@link ChannelPipeline}, as it will pick up any pending flushes when
  * {@link #channelReadComplete(ChannelHandlerContext)} is triggered.
  * If no read loop is ongoing, the behavior depends on the {@code consolidateWhenNoReadInProgress} constructor argument:
@@ -63,7 +58,7 @@ public class FlushConsolidationHandler implements ChannelHandler {
     private final int explicitFlushAfterFlushes;
     private final boolean consolidateWhenNoReadInProgress;
     private final Runnable flushTask;
-    private final List<ChannelOutboundInvokerCallback> flushListeners = new ArrayList<>();
+    private int flushPendingCount;
     private boolean readInProgress;
     private ChannelHandlerContext ctx;
     private Future<?> nextScheduledFlush;
@@ -104,13 +99,10 @@ public class FlushConsolidationHandler implements ChannelHandler {
         this.consolidateWhenNoReadInProgress = consolidateWhenNoReadInProgress;
         flushTask = consolidateWhenNoReadInProgress ?
                 () -> {
-                    if (flushListeners.size() > 0 && !readInProgress) {
-                        ChannelOutboundInvokerCallback listener =
-                                ChannelOutboundInvokerCallback.combine(flushListeners.toArray(
-                                        new ChannelOutboundInvokerCallback[0]));
+                    if (flushPendingCount > 0 && !readInProgress) {
+                        flushPendingCount = 0;
                         nextScheduledFlush = null;
-                        flushListeners.clear();
-                        ctx.flush(listener);
+                        ctx.flush();
                     } // else we'll flush when the read completes
                 }
                 : null;
@@ -122,17 +114,16 @@ public class FlushConsolidationHandler implements ChannelHandler {
     }
 
     @Override
-    public void flush(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
-        flushListeners.add(callback);
+    public void flush(ChannelHandlerContext ctx) throws Exception {
         if (readInProgress) {
             // If there is still a read in progress we are sure we will see a channelReadComplete(...) call. Thus
             // we only need to flush if we reach the explicitFlushAfterFlushes limit.
-            if (flushListeners.size() == explicitFlushAfterFlushes) {
+            if (++flushPendingCount == explicitFlushAfterFlushes) {
                 flushNow(ctx);
             }
         } else if (consolidateWhenNoReadInProgress) {
             // Flush immediately if we reach the threshold, otherwise schedule
-            if (flushListeners.size() == explicitFlushAfterFlushes) {
+            if (++flushPendingCount == explicitFlushAfterFlushes) {
                 flushNow(ctx);
             } else {
                 scheduleFlush(ctx);
@@ -164,17 +155,17 @@ public class FlushConsolidationHandler implements ChannelHandler {
     }
 
     @Override
-    public void disconnect(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
         // Try to flush one last time if flushes are pending before disconnect the channel.
         resetReadAndFlushIfNeeded(ctx);
-        ctx.disconnect(callback);
+        ctx.disconnect(promise);
     }
 
     @Override
-    public void close(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
         // Try to flush one last time if flushes are pending before close the channel.
         resetReadAndFlushIfNeeded(ctx);
-        ctx.close(callback);
+        ctx.close(promise);
     }
 
     @Override
@@ -197,17 +188,15 @@ public class FlushConsolidationHandler implements ChannelHandler {
     }
 
     private void flushIfNeeded(ChannelHandlerContext ctx) {
-        if (flushListeners.size() > 0) {
+        if (flushPendingCount > 0) {
             flushNow(ctx);
         }
     }
 
     private void flushNow(ChannelHandlerContext ctx) {
         cancelScheduledFlush();
-        ChannelOutboundInvokerCallback listener =
-                ChannelOutboundInvokerCallback.combine(flushListeners.toArray(new ChannelOutboundInvokerCallback[0]));
-        flushListeners.clear();
-        ctx.flush(listener);
+        flushPendingCount = 0;
+        ctx.flush();
     }
 
     private void scheduleFlush(final ChannelHandlerContext ctx) {

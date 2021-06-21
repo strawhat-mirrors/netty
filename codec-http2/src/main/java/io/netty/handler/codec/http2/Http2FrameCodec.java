@@ -20,7 +20,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.UnsupportedMessageTypeException;
 import io.netty.handler.codec.http.HttpServerUpgradeHandler.UpgradeEvent;
@@ -235,7 +234,7 @@ public class Http2FrameCodec extends Http2ConnectionHandler {
             if (delta > 0) {
                 // Double the delta just so a single stream can't exhaust the connection window.
                 localFlowController.incrementWindowSize(connectionStream, Math.max(delta << 1, delta));
-                flush(ctx, );
+                flush(ctx);
             }
         }
     }
@@ -283,13 +282,13 @@ public class Http2FrameCodec extends Http2ConnectionHandler {
      * streams.
      */
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback) {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
         if (msg instanceof Http2DataFrame) {
             Http2DataFrame dataFrame = (Http2DataFrame) msg;
             encoder().writeData(ctx, dataFrame.stream().id(), dataFrame.content(),
-                    dataFrame.padding(), dataFrame.isEndStream(), callback);
+                    dataFrame.padding(), dataFrame.isEndStream(), promise);
         } else if (msg instanceof Http2HeadersFrame) {
-            writeHeadersFrame(ctx, (Http2HeadersFrame) msg, callback);
+            writeHeadersFrame(ctx, (Http2HeadersFrame) msg, promise);
         } else if (msg instanceof Http2WindowUpdateFrame) {
             Http2WindowUpdateFrame frame = (Http2WindowUpdateFrame) msg;
             Http2FrameStream frameStream = frame.stream();
@@ -301,9 +300,9 @@ public class Http2FrameCodec extends Http2ConnectionHandler {
                 } else {
                     consumeBytes(frameStream.id(), frame.windowSizeIncrement());
                 }
-                callback.setSuccess();
+                promise.setSuccess();
             } catch (Throwable t) {
-                callback.setFailure(t);
+                promise.setFailure(t);
             }
         } else if (msg instanceof Http2ResetFrame) {
             Http2ResetFrame rstFrame = (Http2ResetFrame) msg;
@@ -311,36 +310,36 @@ public class Http2FrameCodec extends Http2ConnectionHandler {
             // Only ever send a reset frame if stream may have existed before as otherwise we may send a RST on a
             // stream in an invalid state and cause a connection error.
             if (connection().streamMayHaveExisted(id)) {
-                encoder().writeRstStream(ctx, rstFrame.stream().id(), rstFrame.errorCode(), callback);
+                encoder().writeRstStream(ctx, rstFrame.stream().id(), rstFrame.errorCode(), promise);
             } else {
                 ReferenceCountUtil.release(rstFrame);
-                callback.setFailure(Http2Exception.streamError(
+                promise.setFailure(Http2Exception.streamError(
                         rstFrame.stream().id(), Http2Error.PROTOCOL_ERROR, "Stream never existed"));
             }
         } else if (msg instanceof Http2PingFrame) {
             Http2PingFrame frame = (Http2PingFrame) msg;
-            encoder().writePing(ctx, frame.ack(), frame.content(), callback);
+            encoder().writePing(ctx, frame.ack(), frame.content(), promise);
         } else if (msg instanceof Http2SettingsFrame) {
-            encoder().writeSettings(ctx, ((Http2SettingsFrame) msg).settings(), callback);
+            encoder().writeSettings(ctx, ((Http2SettingsFrame) msg).settings(), promise);
         } else if (msg instanceof Http2SettingsAckFrame) {
             // In the event of manual SETTINGS ACK, it is assumed the encoder will apply the earliest received but not
             // yet ACKed settings.
-            encoder().writeSettingsAck(ctx, callback);
+            encoder().writeSettingsAck(ctx, promise);
         } else if (msg instanceof Http2GoAwayFrame) {
-            writeGoAwayFrame(ctx, (Http2GoAwayFrame) msg, callback);
+            writeGoAwayFrame(ctx, (Http2GoAwayFrame) msg, promise);
         } else if (msg instanceof Http2PushPromiseFrame) {
             Http2PushPromiseFrame pushPromiseFrame = (Http2PushPromiseFrame) msg;
-            writePushPromise(ctx, pushPromiseFrame, callback);
+            writePushPromise(ctx, pushPromiseFrame, promise);
         } else if (msg instanceof Http2PriorityFrame) {
             Http2PriorityFrame priorityFrame = (Http2PriorityFrame) msg;
             encoder().writePriority(ctx, priorityFrame.stream().id(), priorityFrame.streamDependency(),
-                    priorityFrame.weight(), priorityFrame.exclusive(), callback);
+                    priorityFrame.weight(), priorityFrame.exclusive(), promise);
         } else if (msg instanceof Http2UnknownFrame) {
             Http2UnknownFrame unknownFrame = (Http2UnknownFrame) msg;
             encoder().writeFrame(ctx, unknownFrame.frameType(), unknownFrame.stream().id(),
-                    unknownFrame.flags(), unknownFrame.content(), callback);
+                    unknownFrame.flags(), unknownFrame.content(), promise);
         } else if (!(msg instanceof Http2Frame)) {
-            ctx.write(msg, callback);
+            ctx.write(msg, promise);
         } else {
             ReferenceCountUtil.release(msg);
             throw new UnsupportedMessageTypeException(msg);

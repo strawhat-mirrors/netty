@@ -25,7 +25,6 @@ import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundBuffer;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.FileRegion;
 import io.netty.util.Attribute;
@@ -542,7 +541,7 @@ public abstract class AbstractTrafficShapingHandler implements ChannelHandler {
     }
 
     @Override
-    public void read(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) {
+    public void read(ChannelHandlerContext ctx) {
         if (isHandlerActive(ctx)) {
             // For Global Traffic (and Read when using EventLoop in pipeline) : check if READ_SUSPENDED is False
             ctx.read();
@@ -550,7 +549,7 @@ public abstract class AbstractTrafficShapingHandler implements ChannelHandler {
     }
 
     @Override
-    public void write(final ChannelHandlerContext ctx, final Object msg, final ChannelOutboundInvokerCallback callback)
+    public void write(final ChannelHandlerContext ctx, final Object msg, final ChannelPromise promise)
             throws Exception {
         long size = calculateSize(msg);
         long now = TrafficCounter.milliSecondFromNano();
@@ -562,12 +561,12 @@ public abstract class AbstractTrafficShapingHandler implements ChannelHandler {
                     logger.debug("Write suspend: " + wait + ':' + ctx.channel().config().isAutoRead() + ':'
                             + isHandlerActive(ctx));
                 }
-                submitWrite(ctx, msg, size, wait, now, callback);
+                submitWrite(ctx, msg, size, wait, now, promise);
                 return;
             }
         }
         // to maintain order of write
-        submitWrite(ctx, msg, size, 0, now, callback);
+        submitWrite(ctx, msg, size, 0, now, promise);
     }
 
     @Deprecated

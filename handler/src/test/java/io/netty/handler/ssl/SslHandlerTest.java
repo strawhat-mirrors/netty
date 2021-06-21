@@ -28,7 +28,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOutboundInvokerCallback;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultChannelId;
 import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
@@ -109,24 +109,23 @@ public class SslHandlerTest {
     @Test(timeout = 5000)
     public void testNonApplicationDataFailureFailsQueuedWrites() throws NoSuchAlgorithmException, InterruptedException {
         final CountDownLatch writeLatch = new CountDownLatch(1);
-        final Queue<ChannelOutboundInvokerCallback> writesToFail = new ConcurrentLinkedQueue<>();
+        final Queue<ChannelPromise> writesToFail = new ConcurrentLinkedQueue<ChannelPromise>();
         SSLEngine engine = newClientModeSSLEngine();
         SslHandler handler = new SslHandler(engine) {
             @Override
-            public void write(final ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback)
-                    throws Exception {
-                super.write(ctx, msg, callback);
+            public void write(final ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+                super.write(ctx, msg, promise);
                 writeLatch.countDown();
             }
         };
         EmbeddedChannel ch = new EmbeddedChannel(new ChannelHandler() {
             @Override
-            public void write(ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback) {
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                 if (msg instanceof ByteBuf) {
                     if (((ByteBuf) msg).isReadable()) {
-                        writesToFail.add(callback);
+                        writesToFail.add(promise);
                     } else {
-                        callback.onSuccess();
+                        promise.setSuccess();
                     }
                 }
                 ReferenceCountUtil.release(msg);
@@ -143,9 +142,9 @@ public class SslHandlerTest {
             writeLatch.await();
 
             // Simulate failing the SslHandler non-application writes after there are applications writes queued.
-            ChannelOutboundInvokerCallback listenerToFail;
-            while ((listenerToFail = writesToFail.poll()) != null) {
-                listenerToFail.onError(new RuntimeException("fake exception"));
+            ChannelPromise promiseToFail;
+            while ((promiseToFail = writesToFail.poll()) != null) {
+                promiseToFail.setFailure(new RuntimeException("fake exception"));
             }
 
             writeCauseLatch.await();
@@ -356,12 +355,13 @@ public class SslHandlerTest {
         SSLEngine engine = newServerModeSSLEngine();
         EmbeddedChannel ch = new EmbeddedChannel(new SslHandler(engine));
 
+        ChannelPromise promise = ch.newPromise();
         ByteBuf buf = Unpooled.buffer(10).writeZero(10);
-        ChannelFuture future = ch.writeAndFlush(buf);
-        assertFalse(future.isDone());
+        ch.writeAndFlush(buf, promise);
+        assertFalse(promise.isDone());
         assertTrue(ch.finishAndReleaseAll());
-        assertTrue(future.isDone());
-        assertThat(future.cause(), is(instanceOf(SSLException.class)));
+        assertTrue(promise.isDone());
+        assertThat(promise.cause(), is(instanceOf(SSLException.class)));
     }
 
     @Test
@@ -398,7 +398,7 @@ public class SslHandlerTest {
         private volatile boolean readIssued;
 
         @Override
-        public void read(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+        public void read(ChannelHandlerContext ctx) throws Exception {
             readIssued = true;
             ctx.read();
         }

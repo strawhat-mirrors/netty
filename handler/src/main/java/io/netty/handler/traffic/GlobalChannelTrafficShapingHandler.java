@@ -24,7 +24,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.Attribute;
 import io.netty.util.concurrent.EventExecutor;
@@ -649,7 +648,7 @@ public class GlobalChannelTrafficShapingHandler extends AbstractTrafficShapingHa
     }
 
     @Override
-    public void write(final ChannelHandlerContext ctx, final Object msg, final ChannelOutboundInvokerCallback callback)
+    public void write(final ChannelHandlerContext ctx, final Object msg, final ChannelPromise promise)
             throws Exception {
         long size = calculateSize(msg);
         long now = TrafficCounter.milliSecondFromNano();
@@ -683,12 +682,12 @@ public class GlobalChannelTrafficShapingHandler extends AbstractTrafficShapingHa
                     logger.debug("Write suspend: " + wait + ':' + ctx.channel().config().isAutoRead() + ':'
                             + isHandlerActive(ctx));
                 }
-                submitWrite(ctx, msg, size, wait, now, callback);
+                submitWrite(ctx, msg, size, wait, now, promise);
                 return;
             }
         }
         // to maintain order of write
-        submitWrite(ctx, msg, size, 0, now, callback);
+        submitWrite(ctx, msg, size, 0, now, promise);
     }
 
     @Override

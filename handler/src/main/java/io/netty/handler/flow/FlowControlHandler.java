@@ -21,7 +21,6 @@ import java.util.Queue;
 import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
@@ -133,15 +132,13 @@ public class FlowControlHandler implements ChannelHandler {
     }
 
     @Override
-    public void read(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) throws Exception {
+    public void read(ChannelHandlerContext ctx) throws Exception {
         if (dequeue(ctx, 1) == 0) {
             // It seems no messages were consumed. We need to read() some
             // messages from upstream and once one arrives it need to be
             // relayed to downstream to keep the flow going.
             shouldConsume = true;
-            ctx.read(callback);
-        } else {
-            callback.onSuccess();
+            ctx.read();
         }
     }
 
@@ -182,7 +179,7 @@ public class FlowControlHandler implements ChannelHandler {
      * consuming that number of messages regardless of the channel's auto
      * reading configuration.
      *
-     * @see ChannelHandler#read(ChannelHandlerContext, ChannelOutboundInvokerCallback)
+     * @see #read(ChannelHandlerContext)
      * @see #channelRead(ChannelHandlerContext, Object)
      */
     private int dequeue(ChannelHandlerContext ctx, int minConsume) {

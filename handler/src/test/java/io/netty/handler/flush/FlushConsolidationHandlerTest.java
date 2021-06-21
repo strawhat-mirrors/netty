@@ -17,7 +17,6 @@ package io.netty.handler.flush;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Test;
 
@@ -174,10 +173,9 @@ public class FlushConsolidationHandlerTest {
         return new EmbeddedChannel(
                 new ChannelHandler() {
                     @Override
-                    public void flush(ChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback)
-                            throws Exception {
+                    public void flush(ChannelHandlerContext ctx) throws Exception {
                         flushCount.incrementAndGet();
-                        ctx.flush(callback);
+                        ctx.flush();
                     }
                 },
                 new FlushConsolidationHandler(EXPLICIT_FLUSH_AFTER_FLUSHES, consolidateWhenNoReadInProgress),

@@ -24,7 +24,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOutboundInvokerCallback;
 import io.netty.channel.ChannelPromise;
 
 import java.util.concurrent.ScheduledFuture;
@@ -105,12 +104,11 @@ public class WriteTimeoutHandler implements ChannelHandler {
     }
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback)
-            throws Exception {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (timeoutNanos > 0) {
-            scheduleTimeout(ctx, callback);
+            scheduleTimeout(ctx, promise);
         }
-        ctx.write(msg, callback);
+        ctx.write(msg, promise);
     }
 
     @Override
@@ -128,10 +126,9 @@ public class WriteTimeoutHandler implements ChannelHandler {
         }
     }
 
-    private void scheduleTimeout(final ChannelHandlerContext ctx, final ChannelOutboundInvokerCallback callback) {
-        ChannelPromise promise = ctx.newPromise();
+    private void scheduleTimeout(final ChannelHandlerContext ctx, final ChannelPromise promise) {
         // Schedule a timeout.
-        final WriteTimeoutTask task = new WriteTimeoutTask(ctx, promise.addCallback(callback));
+        final WriteTimeoutTask task = new WriteTimeoutTask(ctx, promise);
         task.scheduledFuture = ctx.executor().schedule(task, timeoutNanos, TimeUnit.NANOSECONDS);
 
         if (!task.scheduledFuture.isDone()) {
