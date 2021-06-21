@@ -51,14 +51,4 @@ public interface ChannelPromise extends ChannelFuture, Promise<Void>, ChannelOut
 
     @Override
     ChannelPromise awaitUninterruptibly();
-
-    @Override
-    default void onSuccess() {
-        trySuccess();
-    }
-
-    @Override
-    default void onError(Throwable cause) {
-        tryFailure(cause);
-    }
 }
