@@ -318,8 +318,21 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         }
     }
 
+    /**
+     * Try to mark the operation that this {@link ChannelOutboundInvokerCallback} is used for as uncancellable.
+     *
+     * @param callback  the callback
+     * @return          {@code true} if we could either mark the operation explicit as uncancellable or the
+     *                  {@link ChannelOutboundInvokerCallback} did not support it at all. {@code false} if the
+     *                  {@link ChannelOutboundInvokerCallback} does support mark an operation as uncancellable but it
+     *                  failed to do so.
+     */
     protected static boolean trySetUncancellable(ChannelOutboundInvokerCallback callback) {
-        return ChannelOutboundInvokerCallbacks.trySetUncancellable(callback);
+        requireNonNull(callback, "callback");
+        if (callback instanceof ChannelPromise) {
+            return ((ChannelPromise) callback).setUncancellable();
+        }
+        return true;
     }
 
     /**

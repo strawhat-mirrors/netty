@@ -15,7 +15,6 @@
  */
 package io.netty.channel;
 
-import static io.netty.channel.ChannelOutboundInvokerCallbacks.isNotValidCallback;
 import static java.util.Objects.requireNonNull;
 
 import io.netty.buffer.ByteBufAllocator;
@@ -915,6 +914,41 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
     @Override
     public String toString() {
         return StringUtil.simpleClassName(ChannelHandlerContext.class) + '(' + name + ", " + channel() + ')';
+    }
+
+    private static boolean isNotValidCallback(Channel channel, ChannelOutboundInvokerCallback callback) {
+        requireNonNull(channel, "channel");
+        requireNonNull(callback, "callback");
+
+        if (callback instanceof ChannelPromise) {
+            ChannelPromise promise = (ChannelPromise) callback;
+            if (promise.isDone()) {
+                // Check if the promise was cancelled and if so signal that the processing of the operation
+                // should not be performed.
+                //
+                // See https://github.com/netty/netty/issues/2349
+                if (promise.isCancelled()) {
+                    return true;
+                }
+                throw new IllegalArgumentException("promise already done: " + promise);
+            }
+
+            if (promise.channel() != channel) {
+                throw new IllegalArgumentException(String.format(
+                        "promise.channel does not match: %s (expected: %s)", promise.channel(), channel));
+            }
+
+            if (promise.getClass() == DefaultChannelPromise.class) {
+                return false;
+            }
+
+            if (promise instanceof AbstractChannel.CloseFuture) {
+                throw new IllegalArgumentException(
+                        StringUtil.simpleClassName(AbstractChannel.CloseFuture.class) + " not allowed in a pipeline");
+            }
+            return false;
+        }
+        return false;
     }
 
     private static final boolean ESTIMATE_TASK_SIZE_ON_SUBMIT =
