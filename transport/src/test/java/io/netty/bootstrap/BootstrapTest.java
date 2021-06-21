@@ -403,7 +403,8 @@ public class BootstrapTest {
         @Override
         public void register(ChannelHandlerContext ctx, final ChannelOutboundInvokerCallback callback)
                 throws Exception {
-            registerPromise = ctx.newPromise().addCallback(callback);
+            registerPromise = ctx.newPromise();
+            callback.notifyWhenFutureCompletes(registerPromise);
             latch.countDown();
             ChannelPromise newPromise = ctx.newPromise();
             newPromise.addListener((ChannelFutureListener) future -> {

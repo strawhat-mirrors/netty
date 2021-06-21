@@ -111,7 +111,9 @@ public abstract class MessageToMessageEncoder<I> extends ChannelHandlerAdapter {
                     if (sizeMinusOne == 0) {
                         ctx.write(out.getUnsafe(0), callback);
                     } else if (sizeMinusOne > 0) {
-                        writePromiseCombiner(ctx, out, ctx.newPromise().addCallback(callback));
+                       ChannelPromise promise = ctx.newPromise();
+                       callback.notifyWhenFutureCompletes(promise);
+                       writePromiseCombiner(ctx, out, promise);
                     }
                 } finally {
                     out.recycle();

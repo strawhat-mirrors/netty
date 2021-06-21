@@ -41,12 +41,6 @@ public interface ChannelPromise extends ChannelFuture, Promise<Void>, ChannelOut
     ChannelPromise addListener(GenericFutureListener<? extends Future<? super Void>> listener);
 
     @Override
-    default ChannelPromise addCallback(ChannelOutboundInvokerCallback callback) {
-        ChannelFuture.super.addCallback(callback);
-        return this;
-    }
-
-    @Override
     ChannelPromise sync() throws InterruptedException;
 
     @Override

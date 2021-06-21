@@ -233,7 +233,8 @@ public class EmbeddedChannel extends AbstractChannel {
 
     @Override
     public final EmbeddedChannel register(ChannelOutboundInvokerCallback callback) {
-        ChannelPromise promise = newPromise().addCallback(callback);
+        ChannelPromise promise = newPromise();
+        callback.notifyWhenFutureCompletes(promise);
         super.register(promise);
         assert promise.isDone();
         Throwable cause = promise.cause();
@@ -570,7 +571,8 @@ public class EmbeddedChannel extends AbstractChannel {
         // We need to call runPendingTasks() before calling super.close() as there may be something in the queue
         // that needs to be run before the actual close takes place.
         runPendingTasks();
-        ChannelPromise promise = newPromise().addCallback(callback);
+        ChannelPromise promise = newPromise();
+        callback.notifyWhenFutureCompletes(promise);
         super.close(promise);
 
         // Now finish everything else and cancel all scheduled tasks that were not ready set.

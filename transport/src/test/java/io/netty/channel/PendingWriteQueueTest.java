@@ -360,7 +360,9 @@ public class PendingWriteQueueTest {
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback)
                 throws Exception {
-            queue.add(msg, ctx.newPromise().addCallback(callback));
+            ChannelPromise promise = ctx.newPromise();
+            callback.notifyWhenFutureCompletes(promise);
+            queue.add(msg, promise);
             assertFalse(queue.isEmpty());
             assertEquals(++expectedSize, queue.size());
             assertNotNull(queue.current());

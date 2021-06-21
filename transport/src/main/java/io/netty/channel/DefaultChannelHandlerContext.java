@@ -65,7 +65,7 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
     private final ChannelHandler handler;
     private final String name;
 
-    final ChannelOutboundInvokerCallback voidCallback = new VoidChannelOutboundInvokerCallback();
+    final ChannelOutboundInvokerCallback voidCallback;
 
     // Lazily instantiated tasks used to trigger events to a handler with different executor.
     // There is no need to make this volatile as at worse it will just create a few more instances then needed.
@@ -81,6 +81,7 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
         this.pipeline = pipeline;
         this.executionMask = mask(handler.getClass());
         this.handler = handler;
+        this.voidCallback = VoidChannelOutboundInvokerCallback.newInstance(this);
     }
 
     private static void failRemoved(DefaultChannelHandlerContext ctx, ChannelOutboundInvokerCallback callback) {
@@ -1004,16 +1005,4 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
             invokeFlushTaskWithNoop = () -> ctx.findAndInvokeFlush(voidCallback);
         }
     }
-
-    private final class VoidChannelOutboundInvokerCallback implements ChannelOutboundInvokerCallback {
-        @Override
-        public void onSuccess() {
-            // NOOP
-        }
-
-        @Override
-        public void onError(Throwable cause) {
-            fireExceptionCaught(cause);
-        }
-    };
 }

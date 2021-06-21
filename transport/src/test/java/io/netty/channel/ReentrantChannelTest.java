@@ -229,7 +229,8 @@ public class ReentrantChannelTest extends BaseChannelTest {
             @Override
             public void write(final ChannelHandlerContext ctx, Object msg, ChannelOutboundInvokerCallback callback)
                     throws Exception {
-                ctx.write(msg).addListener(future -> ctx.channel().close()).addCallback(callback);
+                ChannelFuture f = ctx.write(msg).addListener(future -> ctx.channel().close());
+                callback.notifyWhenFutureCompletes(f);
                 ctx.channel().flush();
             }
         });

@@ -47,18 +47,6 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannel.class);
 
-    private static final ChannelOutboundInvokerCallback NOOP_CALLBACK = new ChannelOutboundInvokerCallback() {
-        @Override
-        public void onSuccess() {
-            // NOOP
-        }
-
-        @Override
-        public void onError(Throwable ignore) {
-            // NOOP
-        }
-    };
-
     private final Channel parent;
     private final ChannelId id;
     private final Unsafe unsafe;
@@ -570,7 +558,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     callback.onSuccess();
                 } else {
                     // This means close() was called before so we just register a listener and return
-                    closeFuture.addCallback(callback);
+
+                    callback.notifyWhenFutureCompletes(closeFuture);
                 }
                 return;
             }
@@ -917,7 +906,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
          * @return a noop.
          */
         protected ChannelOutboundInvokerCallback noopCallback() {
-            return NOOP_CALLBACK;
+            return VoidChannelOutboundInvokerCallback.noop();
         }
     }
 

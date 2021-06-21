@@ -33,28 +33,17 @@ public interface ChannelOutboundInvokerCallback {
     void onError(Throwable cause);
 
     /**
-     * Return a {@link ChannelOutboundInvokerCallback} that will notify all given
-     * {@link ChannelOutboundInvokerCallback}s.
+     * Notify this {@link ChannelOutboundInvokerCallback} when the given {@link ChannelFuture} completes.
      *
-     * @param callbacks the {@link ChannelOutboundInvoker}s to combine.
-     * @return the callback that will notify all of the combines callbacks.
+     * @param future the future.
      */
-    static ChannelOutboundInvokerCallback combine(ChannelOutboundInvokerCallback... callbacks) {
-        final ChannelOutboundInvokerCallback[] copy = callbacks.clone();
-        return new ChannelOutboundInvokerCallback() {
-            @Override
-            public void onSuccess() {
-                for (ChannelOutboundInvokerCallback callback: copy) {
-                    callback.onSuccess();
-                }
+    default void notifyWhenFutureCompletes(ChannelFuture future) {
+        future.addListener(f -> {
+            if (f.isSuccess()) {
+                onSuccess();
+            } else {
+                onError(f.cause());
             }
-
-            @Override
-            public void onError(Throwable cause) {
-                for (ChannelOutboundInvokerCallback callback: copy) {
-                    callback.onError(cause);
-                }
-            }
-        };
+        });
     }
 }
