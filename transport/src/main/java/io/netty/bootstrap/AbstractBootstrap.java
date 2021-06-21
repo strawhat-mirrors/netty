@@ -265,7 +265,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C, F>, C 
         final ChannelPromise promise = channel.newPromise();
         loop.execute(() -> init(channel).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
-                channel.register(promise.asOutboundInvokerCallback());
+                channel.register(promise);
             } else {
                 channel.unsafe().closeForcibly();
                 promise.setFailure(future.cause());

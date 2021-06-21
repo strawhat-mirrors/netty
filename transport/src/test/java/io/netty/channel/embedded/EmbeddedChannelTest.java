@@ -198,7 +198,7 @@ public class EmbeddedChannelTest {
         testFireChannelInactiveAndUnregistered(ChannelOutboundInvoker::close);
         testFireChannelInactiveAndUnregistered(channel -> {
             ChannelPromise promise = channel.newPromise();
-            channel.close(promise.asOutboundInvokerCallback());
+            channel.close(promise);
             return promise;
         });
     }
@@ -210,7 +210,7 @@ public class EmbeddedChannelTest {
 
         testFireChannelInactiveAndUnregistered(channel -> {
             ChannelPromise promise = channel.newPromise();
-            channel.disconnect(promise.asOutboundInvokerCallback());
+            channel.disconnect(promise);
             return promise;
         });
     }

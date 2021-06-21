@@ -381,27 +381,27 @@ public class CombinedChannelDuplexHandlerTest {
         ChannelPipeline pipeline = ch.pipeline();
 
         ChannelPromise promise = ch.newPromise();
-        pipeline.connect(new InetSocketAddress(0), null, promise.asOutboundInvokerCallback());
+        pipeline.connect(new InetSocketAddress(0), null, promise);
         promise.syncUninterruptibly();
 
         promise = ch.newPromise();
-        pipeline.bind(new InetSocketAddress(0), promise.asOutboundInvokerCallback());
+        pipeline.bind(new InetSocketAddress(0), promise);
         promise.syncUninterruptibly();
 
         promise = ch.newPromise();
-        pipeline.close(promise.asOutboundInvokerCallback());
+        pipeline.close(promise);
         promise.syncUninterruptibly();
 
         promise = ch.newPromise();
-        pipeline.disconnect(promise.asOutboundInvokerCallback());
+        pipeline.disconnect(promise);
         promise.syncUninterruptibly();
 
         promise = ch.newPromise();
-        pipeline.write("test", promise.asOutboundInvokerCallback());
+        pipeline.write("test", promise);
         promise.syncUninterruptibly();
 
         promise = ch.newPromise();
-        pipeline.deregister(promise.asOutboundInvokerCallback());
+        pipeline.deregister(promise);
         promise.syncUninterruptibly();
         ch.finish();
     }

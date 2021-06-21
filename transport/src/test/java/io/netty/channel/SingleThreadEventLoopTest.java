@@ -380,7 +380,7 @@ public class SingleThreadEventLoopTest {
         }
 
         try {
-            ch.register(promise.asOutboundInvokerCallback());
+            ch.register(promise);
             promise.awaitUninterruptibly();
             assertFalse(promise.isSuccess());
             assertThat(promise.cause(), is(instanceOf(RejectedExecutionException.class)));

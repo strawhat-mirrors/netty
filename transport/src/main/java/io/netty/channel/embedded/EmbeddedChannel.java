@@ -227,14 +227,14 @@ public class EmbeddedChannel extends AbstractChannel {
     @Override
     public final ChannelFuture register() {
         ChannelPromise promise = newPromise();
-        register(promise.asOutboundInvokerCallback());
+        register(promise);
         return promise;
     }
 
     @Override
     public final EmbeddedChannel register(ChannelOutboundInvokerCallback callback) {
         ChannelPromise promise = newPromise().addCallback(callback);
-        super.register(promise.asOutboundInvokerCallback());
+        super.register(promise);
         assert promise.isDone();
         Throwable cause = promise.cause();
         if (cause != null) {
@@ -454,7 +454,7 @@ public class EmbeddedChannel extends AbstractChannel {
      */
     public ChannelFuture writeOneOutbound(Object msg, ChannelPromise promise) {
         if (checkOpen(true)) {
-            write(msg, promise.asOutboundInvokerCallback());
+            write(msg, promise);
             return promise;
         }
         checkException(promise);
@@ -561,7 +561,7 @@ public class EmbeddedChannel extends AbstractChannel {
     @Override
     public final ChannelFuture close() {
         ChannelPromise promise = newPromise();
-        close(promise.asOutboundInvokerCallback());
+        close(promise);
         return promise;
     }
 
@@ -571,7 +571,7 @@ public class EmbeddedChannel extends AbstractChannel {
         // that needs to be run before the actual close takes place.
         runPendingTasks();
         ChannelPromise promise = newPromise().addCallback(callback);
-        super.close(promise.asOutboundInvokerCallback());
+        super.close(promise);
 
         // Now finish everything else and cancel all scheduled tasks that were not ready set.
         finishPendingTasks(true);
@@ -581,7 +581,7 @@ public class EmbeddedChannel extends AbstractChannel {
     @Override
     public final ChannelFuture disconnect() {
         ChannelPromise promise = newPromise();
-        disconnect(promise.asOutboundInvokerCallback());
+        disconnect(promise);
         return promise;
     }
 

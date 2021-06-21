@@ -411,7 +411,7 @@ public class BootstrapTest {
                     registerPromise.tryFailure(future.cause());
                 }
             });
-            ctx.register(newPromise.asOutboundInvokerCallback());
+            ctx.register(newPromise);
         }
 
         ChannelPromise registerPromise() throws InterruptedException {

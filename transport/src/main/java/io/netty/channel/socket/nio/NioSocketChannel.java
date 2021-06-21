@@ -167,9 +167,9 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
     public ChannelFuture shutdownOutput(final ChannelPromise promise) {
         final EventLoop loop = eventLoop();
         if (loop.inEventLoop()) {
-            ((AbstractUnsafe) unsafe()).shutdownOutput(promise.asOutboundInvokerCallback());
+            ((AbstractUnsafe) unsafe()).shutdownOutput(promise);
         } else {
-            loop.execute(() -> ((AbstractUnsafe) unsafe()).shutdownOutput(promise.asOutboundInvokerCallback()));
+            loop.execute(() -> ((AbstractUnsafe) unsafe()).shutdownOutput(promise));
         }
         return promise;
     }

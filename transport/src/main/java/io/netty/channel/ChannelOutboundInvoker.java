@@ -34,7 +34,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture bind(SocketAddress localAddress) {
         ChannelPromise promise = newPromise();
-        bind(localAddress, promise.asOutboundInvokerCallback());
+        bind(localAddress, promise);
         return promise;
     }
 
@@ -54,7 +54,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture connect(SocketAddress remoteAddress) {
         ChannelPromise promise = newPromise();
-        connect(remoteAddress, promise.asOutboundInvokerCallback());
+        connect(remoteAddress, promise);
         return promise;
     }
 
@@ -71,7 +71,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress) {
         ChannelPromise promise = newPromise();
-        connect(remoteAddress, localAddress, promise.asOutboundInvokerCallback());
+        connect(remoteAddress, localAddress, promise);
         return promise;
     }
 
@@ -86,7 +86,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture disconnect() {
         ChannelPromise promise = newPromise();
-        disconnect(promise.asOutboundInvokerCallback());
+        disconnect(promise);
         return promise;
     }
 
@@ -104,7 +104,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture close() {
         ChannelPromise promise = newPromise();
-        close(promise.asOutboundInvokerCallback());
+        close(promise);
         return promise;
     }
 
@@ -121,7 +121,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture register() {
         ChannelPromise promise = newPromise();
-        register(promise.asOutboundInvokerCallback());
+        register(promise);
         return promise;
     }
 
@@ -138,7 +138,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture deregister() {
         ChannelPromise promise = newPromise();
-        deregister(promise.asOutboundInvokerCallback());
+        deregister(promise);
         return promise;
     }
 
@@ -156,7 +156,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture read() {
         ChannelPromise promise = newPromise();
-        read(promise.asOutboundInvokerCallback());
+        read(promise);
         return promise;
     }
 
@@ -357,7 +357,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture write(Object msg) {
         ChannelPromise promise = newPromise();
-        write(msg, promise.asOutboundInvokerCallback());
+        write(msg, promise);
         return promise;
     }
 
@@ -384,7 +384,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture flush() {
         ChannelPromise promise = newPromise();
-        flush(promise.asOutboundInvokerCallback());
+        flush(promise);
         return promise;
     }
 
@@ -423,7 +423,7 @@ public interface ChannelOutboundInvoker<I extends ChannelOutboundInvoker<I>> {
      */
     default ChannelFuture writeAndFlush(Object msg) {
         ChannelPromise promise = newPromise();
-        writeAndFlush(msg, promise.asOutboundInvokerCallback());
+        writeAndFlush(msg, promise);
         return promise;
     }
 

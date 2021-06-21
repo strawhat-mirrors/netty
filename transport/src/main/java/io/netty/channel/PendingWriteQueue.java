@@ -142,7 +142,7 @@ public final class PendingWriteQueue {
                     ChannelPromise promise = write.promise;
                     recycle(write, false);
                     combiner.add(promise);
-                    ctx.write(msg, promise.asOutboundInvokerCallback());
+                    ctx.write(msg, promise);
                     write = next;
                 }
             }
@@ -217,7 +217,7 @@ public final class PendingWriteQueue {
         Object msg = write.msg;
         ChannelPromise promise = write.promise;
         recycle(write, true);
-        ctx.write(msg, promise.asOutboundInvokerCallback());
+        ctx.write(msg, promise);
         return promise;
     }
 

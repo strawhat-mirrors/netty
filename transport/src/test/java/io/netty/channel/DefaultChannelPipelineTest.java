@@ -689,7 +689,7 @@ public class DefaultChannelPipelineTest {
 
         ChannelPromise promise = pipeline.channel().newPromise();
         assertTrue(promise.cancel(false));
-        pipeline.bind(new LocalAddress("test"), promise.asOutboundInvokerCallback());
+        pipeline.bind(new LocalAddress("test"), promise);
         assertTrue(promise.isCancelled());
     }
 
@@ -700,7 +700,7 @@ public class DefaultChannelPipelineTest {
 
         ChannelPromise promise = pipeline.channel().newPromise();
         assertTrue(promise.cancel(false));
-        pipeline.connect(new LocalAddress("test"), promise.asOutboundInvokerCallback());
+        pipeline.connect(new LocalAddress("test"), promise);
         assertTrue(promise.isCancelled());
     }
 
@@ -711,7 +711,7 @@ public class DefaultChannelPipelineTest {
 
         ChannelPromise promise = pipeline.channel().newPromise();
         assertTrue(promise.cancel(false));
-       pipeline.disconnect(promise.asOutboundInvokerCallback());
+       pipeline.disconnect(promise);
         assertTrue(promise.isCancelled());
     }
 
@@ -722,7 +722,7 @@ public class DefaultChannelPipelineTest {
 
         ChannelPromise promise = pipeline.channel().newPromise();
         assertTrue(promise.cancel(false));
-        pipeline.close(promise.asOutboundInvokerCallback());
+        pipeline.close(promise);
         assertTrue(promise.isCancelled());
     }
 
@@ -736,7 +736,7 @@ public class DefaultChannelPipelineTest {
 
         try {
             ChannelPromise promise2 = pipeline2.channel().newPromise();
-            assertThrows(IllegalArgumentException.class, () -> pipeline.close(promise2.asOutboundInvokerCallback()));
+            assertThrows(IllegalArgumentException.class, () -> pipeline.close(promise2));
         } finally {
             pipeline.close();
             pipeline2.close();
@@ -750,7 +750,7 @@ public class DefaultChannelPipelineTest {
 
         try {
             ChannelPromise promise = (ChannelPromise) pipeline.channel().closeFuture();
-            assertThrows(IllegalArgumentException.class, () -> pipeline.close(promise.asOutboundInvokerCallback()));
+            assertThrows(IllegalArgumentException.class, () -> pipeline.close(promise));
         } finally {
             pipeline.close();
         }
@@ -763,7 +763,7 @@ public class DefaultChannelPipelineTest {
 
         ChannelPromise promise = pipeline.channel().newPromise();
         assertTrue(promise.cancel(false));
-        pipeline.deregister(promise.asOutboundInvokerCallback());
+        pipeline.deregister(promise);
         assertTrue(promise.isCancelled());
     }
 
@@ -776,7 +776,7 @@ public class DefaultChannelPipelineTest {
         assertTrue(promise.cancel(false));
         ByteBuf buffer = Unpooled.buffer();
         assertEquals(1, buffer.refCnt());
-        pipeline.write(buffer, promise.asOutboundInvokerCallback());
+        pipeline.write(buffer, promise);
         assertTrue(promise.isCancelled());
         assertEquals(0, buffer.refCnt());
     }
@@ -790,7 +790,7 @@ public class DefaultChannelPipelineTest {
         assertTrue(promise.cancel(false));
         ByteBuf buffer = Unpooled.buffer();
         assertEquals(1, buffer.refCnt());
-        pipeline.writeAndFlush(buffer, promise.asOutboundInvokerCallback());
+        pipeline.writeAndFlush(buffer, promise);
         assertTrue(promise.isCancelled());
         assertEquals(0, buffer.refCnt());
     }
@@ -1650,9 +1650,9 @@ public class DefaultChannelPipelineTest {
 
         try {
             if (flush) {
-                channel.writeAndFlush(referenceCounted, channel2.newPromise().asOutboundInvokerCallback());
+                channel.writeAndFlush(referenceCounted, channel2.newPromise());
             } else {
-                channel.write(referenceCounted, channel2.newPromise().asOutboundInvokerCallback());
+                channel.write(referenceCounted, channel2.newPromise());
             }
             fail();
         } catch (IllegalArgumentException expected) {

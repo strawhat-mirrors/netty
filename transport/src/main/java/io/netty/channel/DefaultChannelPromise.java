@@ -30,8 +30,7 @@ import static java.util.Objects.requireNonNull;
  * The default {@link ChannelPromise} implementation.  It is recommended to use {@link Channel#newPromise()} to create
  * a new {@link ChannelPromise} rather than calling the constructor explicitly.
  */
-public class DefaultChannelPromise extends DefaultPromise<Void> implements ChannelPromise, FlushCheckpoint,
-        ChannelOutboundInvokerCallback {
+public class DefaultChannelPromise extends DefaultPromise<Void> implements ChannelPromise, FlushCheckpoint {
     private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(DefaultChannelPromise.class);
 
     private final Channel channel;
@@ -145,10 +144,5 @@ public class DefaultChannelPromise extends DefaultPromise<Void> implements Chann
     @Override
     public void onError(Throwable cause) {
         PromiseNotificationUtil.tryFailure(this, cause, LOGGER);
-    }
-
-    @Override
-    public ChannelOutboundInvokerCallback asOutboundInvokerCallback() {
-        return this;
     }
 }

@@ -22,7 +22,7 @@ import io.netty.util.concurrent.Promise;
 /**
  * Special {@link ChannelFuture} which is writable.
  */
-public interface ChannelPromise extends ChannelFuture, Promise<Void> {
+public interface ChannelPromise extends ChannelFuture, Promise<Void>, ChannelOutboundInvokerCallback {
 
     @Override
     Channel channel();
@@ -58,5 +58,13 @@ public interface ChannelPromise extends ChannelFuture, Promise<Void> {
     @Override
     ChannelPromise awaitUninterruptibly();
 
-    ChannelOutboundInvokerCallback asOutboundInvokerCallback();
+    @Override
+    default void onSuccess() {
+        trySuccess();
+    }
+
+    @Override
+    default void onError(Throwable cause) {
+        tryFailure(cause);
+    }
 }

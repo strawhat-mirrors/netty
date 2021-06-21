@@ -227,7 +227,7 @@ public class Bzip2Encoder extends MessageToByteEncoder<ByteBuf> {
         } finally {
             blockCompressor = null;
         }
-        ctx.writeAndFlush(footer, promise.asOutboundInvokerCallback());
+        ctx.writeAndFlush(footer, promise);
         return promise;
     }
 

@@ -249,7 +249,7 @@ public abstract class AbstractCoalescingBufferQueue {
                     previousBuf = ((ByteBufConvertible) entry).asByteBuf();
                 } else if (entry instanceof ChannelPromise) {
                     decrementReadableBytes(previousBuf.readableBytes());
-                    ctx.write(previousBuf, ((ChannelPromise) entry).asOutboundInvokerCallback());
+                    ctx.write(previousBuf, (ChannelPromise) entry);
                     previousBuf = null;
                 } else {
                     decrementReadableBytes(previousBuf.readableBytes());

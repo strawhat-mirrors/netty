@@ -374,7 +374,7 @@ public class LocalChannelTest {
                 cc.pipeline().lastContext().executor().execute(() -> {
                     ChannelPromise promise = ccCpy.newPromise();
                     promise.addListener((ChannelFutureListener) future -> ccCpy.pipeline().lastContext().close());
-                    ccCpy.writeAndFlush(data.retainedDuplicate(), promise.asOutboundInvokerCallback());
+                    ccCpy.writeAndFlush(data.retainedDuplicate(), promise);
                 });
 
                 assertTrue(messageLatch.await(5, SECONDS));
@@ -498,8 +498,8 @@ public class LocalChannelTest {
                     ChannelPromise promise = ccCpy.newPromise();
                     promise.addListener((ChannelFutureListener) future ->
                             ccCpy.writeAndFlush(data2.retainedDuplicate(),
-                                    ccCpy.newPromise().asOutboundInvokerCallback()));
-                    ccCpy.writeAndFlush(data.retainedDuplicate(), promise.asOutboundInvokerCallback());
+                                    ccCpy.newPromise()));
+                    ccCpy.writeAndFlush(data.retainedDuplicate(), promise);
                 });
 
                 assertTrue(messageLatch.await(5, SECONDS));
@@ -575,9 +575,9 @@ public class LocalChannelTest {
                 promise.addListener((ChannelFutureListener) future -> {
                     Channel serverChannelCpy = serverChannelRef.get();
                     serverChannelCpy.writeAndFlush(data2.retainedDuplicate(),
-                            serverChannelCpy.newPromise().asOutboundInvokerCallback());
+                            serverChannelCpy.newPromise());
                 });
-                ccCpy.writeAndFlush(data.retainedDuplicate(), promise.asOutboundInvokerCallback());
+                ccCpy.writeAndFlush(data.retainedDuplicate(), promise);
             });
 
             assertTrue(messageLatch.await(5, SECONDS));
@@ -652,9 +652,9 @@ public class LocalChannelTest {
                     promise.addListener((ChannelFutureListener) future -> {
                         Channel serverChannelCpy = serverChannelRef.get();
                         serverChannelCpy.writeAndFlush(
-                            data2.retainedDuplicate(), serverChannelCpy.newPromise().asOutboundInvokerCallback());
+                            data2.retainedDuplicate(), serverChannelCpy.newPromise());
                     });
-                    ccCpy.writeAndFlush(data.retainedDuplicate(), promise.asOutboundInvokerCallback());
+                    ccCpy.writeAndFlush(data.retainedDuplicate(), promise);
                 });
 
                 assertTrue(messageLatch.await(5, SECONDS));
@@ -809,7 +809,7 @@ public class LocalChannelTest {
                 }
             });
             // Connect to the server
-            cc.connect(sc.localAddress(), promise.asOutboundInvokerCallback());
+            cc.connect(sc.localAddress(), promise);
             promise.sync();
 
             assertPromise.syncUninterruptibly();
