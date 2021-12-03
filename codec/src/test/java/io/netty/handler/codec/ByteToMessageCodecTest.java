@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -76,7 +77,7 @@ public class ByteToMessageCodecTest {
         assertTrue(ch.writeInbound(buffer));
         ch.pipeline().remove(codec);
         assertTrue(ch.finish());
-        assertEquals(1, ch.readInbound());
+        assertEquals(Optional.of(1), ch.readInbound());
 
         ByteBuf buf = ch.readInbound();
         assertEquals(Unpooled.wrappedBuffer(new byte[]{'0'}), buf);
